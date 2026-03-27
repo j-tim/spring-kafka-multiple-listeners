@@ -6,12 +6,13 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>4.0.3</version>
+    <version>4.1.0-M3</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>com.example.kafka4</groupId>
   <artifactId>spring-kafka-consumer</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
   <name>spring-kafka-consumer</name>
   <description>spring-kafka-consumer</description>
   <url/>
@@ -29,6 +30,7 @@
   </scm>
   <properties>
     <java.version>21</java.version>
+    <confluent.kafka.version>8.2.0</confluent.kafka.version>
   </properties>
   <dependencies>
     <dependency>
@@ -50,7 +52,30 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>com.example.kafka4</groupId>
+      <artifactId>events</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!--
+      https://packages.confluent.io/maven/io/confluent/kafka-avro-serializer/
+    -->
+    <dependency>
+      <groupId>io.confluent</groupId>
+      <artifactId>kafka-avro-serializer</artifactId>
+      <version>${confluent.kafka.version}</version>
+    </dependency>
   </dependencies>
+
+  <repositories>
+    <!-- Confluent Maven repo, required to download the Confluent Kafka Avro Serializer dependencies -->
+    <repository>
+      <id>confluent</id>
+      <url>https://packages.confluent.io/maven/</url>
+    </repository>
+  </repositories>
 
   <build>
     <plugins>
@@ -60,5 +85,7 @@
       </plugin>
     </plugins>
   </build>
+
+
 
 </project>

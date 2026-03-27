@@ -3,14 +3,35 @@ spring:
     name: spring-kafka-consumer
 
   kafka:
+    # Generic for all consumers
     consumer:
-      group-id: my-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      auto-offset-reset: earliest
+      value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
       bootstrap-servers: localhost:9092
+      group-id: my-avro-consumer-group
+      auto-offset-reset: earliest
+      properties:
+          schema.registry.url: http://localhost:8081
+          specific.avro.reader: true
     listener:
       observation-enabled: true
+
+    consumers:
+      # Specific for each consumer.
+      "my-avro-topic-consumer":
+        consumer:
+          group-id: my-avro-group
+          value-deserializer: org.apache.kafka.common.serialization.AvroDeserializer
+          auto-offset-reset: earliest
+      "my-json-topic-consumer":
+        consumer:
+          group-id: my-json-group
+          value-deserializer: org.apache.kafka.common.serialization.JsonDeserializer
+          auto-offset-reset: latest
+          bootstrap-servers: other-cluster:9092
+
+        listener:
+          observation-enabled: false
 
 management:
   endpoints:

@@ -1,19 +1,25 @@
 package com.example.kafka4.springkafkaconsumer;
 
+import com.example.kafka4.event.avro.StockQuoteEventAvro;
+import com.example.kafka4.event.json.StockQuoteEventJson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Component
 public class MultiKafkaListener {
 
-    @KafkaListener(topics = "topic1", groupId = "group1")
-    public void listenToTopic1(String message) {
-        System.out.println("Received message from topic1: " + message);
+    private static final Logger log = LoggerFactory.getLogger(MultiKafkaListener.class);
+
+    @KafkaListener(topics = "json-topic", containerFactory = "jsonKafkaListenerContainerFactory")
+    public void onJsonEvent(StockQuoteEventJson event) {
+        log.info("Received message from json-topic: {}", event);
     }
 
-    @KafkaListener(topics = "topic2", groupId = "group2")
-    public void listenToTopic2(String message) {
-        System.out.println("Received message from topic2: " + message);
+    @KafkaListener(topics = "avro-topic", containerFactory = "avroKafkaListenerContainerFactory")
+    public void onAvroEvent(StockQuoteEventAvro event) {
+        log.info("Received message from avro-topic: {}", event);
     }
 
 }
