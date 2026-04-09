@@ -65,22 +65,58 @@ class KafkaAnnotationDrivenConfiguration {
 
 * Lot of code for "just" configuration 
 
-## Our proposal
+## Our proposal: Dynamically create KafkaListenerContainerFactory beans 
 
-### Option 1:  
+Dynamically create `KafkaListenerContainerFactory` beans for each consumer to be configured differently 
+(like different deserialization format, shared secrets for encryption)  
+based on the configuration in `application.yml`. 
 
+Spring Kafka consumers is a map. Where each key will the name of the KafkaListenerContainerFactory bean. 
 
-### Option 2: More control over the configuration of KafkaContainerListener using any Spring property source 
+```yml
+spring:
+  kafka:
+    # Propasal
+    consumers:
+      # Specific for each consumer.
+      "my-avro-topic-consumer":
+        consumer:
+          group-id: my-avro-group
+          value-deserializer: org.apache.kafka.common.serialization.AvroDeserializer
+          auto-offset-reset: earliest
+      "my-json-topic-consumer":
+        consumer:
+          group-id: my-json-group
+          value-deserializer: org.apache.kafka.common.serialization.JsonDeserializer
+          auto-offset-reset: latest
+          bootstrap-servers: other-cluster:9092
+        listener:
+          observation-enabled: false
+```
 
-Some examples:
-* More configuration options for `@KafkaListener` annotation to refer to property block, specified in `application.yml` or externalized configuration
-* 
+The name of this bean will be referenced in the `@KafkaListener` annotation to specify which container factory 
+to use for each listener method.
 
-TODO check if possible
+```java
+@Component
+public class MultiKafkaListener {
+    
+  private static final Logger log = LoggerFactory.getLogger(MultiKafkaListener.class);
 
-* ContainerPostProcessor
-* ContainerCustomizer
+  @KafkaListener(topics = "avro-topic", containerFactory = "my-avro-topic-consumer")
+  public void onAvroEvent(StockQuoteEventAvro event) {
+    log.info("Received message from avro-topic: {}", event);
+  }
+  
+  @KafkaListener(topics = "json-topic", containerFactory = "my-json-topic-consumer")
+  public void onJsonEvent(StockQuoteEventJson event) {
+    log.info("Received message from json-topic: {}", event);
+  }
+}
+```
 
+The developer doesn't need to create any `ConsumerFactory` bean or `KafkaListenerContainerFactory` bean for each consumer.
+So this boilerplate code is removed and the Java configuration.
 
 
 
