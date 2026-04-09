@@ -1,4 +1,4 @@
-package com.example.kafka4.springkafkaconsumer;
+package com.example.kafka4.spring.kafka.consumer;
 
 import com.example.kafka4.event.avro.StockQuoteEventAvro;
 import com.example.kafka4.event.json.StockQuoteEventJson;

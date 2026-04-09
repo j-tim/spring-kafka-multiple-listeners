@@ -1,4 +1,4 @@
-package com.example.kafka4.springkafkaconsumer;
+package com.example.kafka4.spring.kafka.consumer.rest;
 
 import java.util.Collection;
 import org.slf4j.Logger;
