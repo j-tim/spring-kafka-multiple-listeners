@@ -1,3 +1,12 @@
+# Spring Kafka 
+
+## Build and run the project
+
+```bash
+./mvnw clean install
+docker compose up -d
+./mvnw spring-boot:run -pl spring-kafka-consumer
+```
 
 ## Context
 
@@ -41,7 +50,7 @@ Cons:
 We don`t want to create a `ConsumerFactory` bean and `ConcurrentKafkaListenerContainerFactory` for every @KafkaListener annoted method we have.
 
 Cons:
-* Boilerplate code for every topic we want to consume from
+* Boilerplate code for every topic we want to consume from like [](spring-kafka-consumer/src/main/java/com/example/kafka4/spring/kafka/consumer/MultiKafkaListenerConfigUsingAnnotations.java)
 * Error-prone, easy to mistakes in the Java configuration (not using ContainerCustomizer) will lead to missing metrics and tracing
 
 ```java
