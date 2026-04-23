@@ -4,26 +4,20 @@ import com.example.kafka4.event.avro.StockQuoteEventAvro;
 import com.example.kafka4.event.json.StockQuoteEventJson;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.kafka.autoconfigure.*;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.ContainerCustomizer;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.JacksonJsonDeserializer;
-import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
 import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
@@ -72,11 +66,7 @@ public class KafkaConsumerConfiguration {
         Map<String, Object> configurationOverrides = new HashMap<>(properties);
         configurationOverrides.put(ConsumerConfig.GROUP_ID_CONFIG, "multiple-consumer-beans-group-json");
         configurationOverrides.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-//        Spring Boot (Jackson 3)
         configurationOverrides.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JacksonJsonDeserializer.class);
-
-//        Spring Boot (Jackson 2)
-//        configurationOverrides.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, org.springframework.kafka.support.serializer.JsonDeserializer.class);
         configurationOverrides.put("spring.json.trusted.packages", "com.example.kafka4.event.json");
 
         applyKafkaConnectionDetailsForConsumer(properties, connectionDetails);
@@ -94,23 +84,6 @@ public class KafkaConsumerConfiguration {
         configurer.configure(factory, (ConsumerFactory) jsonKafkaConsumerFactory);
         kafkaContainerCustomizer.ifAvailable(factory::setContainerCustomizer);
         return factory;
-    }
-
-    // =================== Json Producer ===============================================================================
-
-    @Bean
-    public DefaultKafkaProducerFactory<String, StockQuoteEventJson> jsonKafkaProducerFactory() {
-        Map<String, Object> properties = this.kafkaProperties.buildProducerProperties();
-        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        return new DefaultKafkaProducerFactory<>(properties);
-    }
-
-    @Bean
-    @Primary
-    public KafkaTemplate<String, StockQuoteEventJson> kafkaTemplate(
-            DefaultKafkaProducerFactory<String, StockQuoteEventJson> jsonKafkaProducerFactory) {
-        return new KafkaTemplate<>(jsonKafkaProducerFactory);
     }
 
     // ======== Other methods need to copy because of visibility =======================================================
