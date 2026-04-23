@@ -1,6 +1,8 @@
 package com.example.kafka4.spring.kafka.consumer.rest;
 
+import com.example.kafka4.event.avro.StockQuoteEventAvro;
 import com.example.kafka4.event.json.StockQuoteEventJson;
+import com.example.kafka4.spring.kafka.consumer.producer.StockQuoteAvroProducer;
 import com.example.kafka4.spring.kafka.consumer.producer.StockQuoteJsonProducer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,19 +13,12 @@ import java.time.Instant;
 @RequestMapping("/api/stock-quotes")
 public class StockQuoteProducerController {
 
-    private final StockQuoteJsonProducer producerService;
+    private final StockQuoteJsonProducer stockQuoteJsonProducer;
+    private final StockQuoteAvroProducer stockQuoteAvroProducer;
 
-    public StockQuoteProducerController(StockQuoteJsonProducer producerService) {
-        this.producerService = producerService;
-    }
-
-    /**
-     * Send a stock quote event to the default topic.
-     */
-    @PostMapping
-    public ResponseEntity<String> sendStockQuote(@RequestBody StockQuoteEventJson event) {
-        producerService.sendStockQuote(event);
-        return ResponseEntity.ok("Stock quote event sent successfully");
+    public StockQuoteProducerController(StockQuoteJsonProducer stockQuoteJsonProducer, StockQuoteAvroProducer stockQuoteAvroProducer) {
+        this.stockQuoteJsonProducer = stockQuoteJsonProducer;
+        this.stockQuoteAvroProducer = stockQuoteAvroProducer;
     }
 
     /**
@@ -31,15 +26,30 @@ public class StockQuoteProducerController {
      */
     @PostMapping("/sample")
     public ResponseEntity<String> sendSampleStockQuote() {
-        StockQuoteEventJson sampleEvent = new StockQuoteEventJson(
-            "AAPL",
-            "NASDAQ",
-            "178.50",
-            "USD",
-            "Apple Inc. Common Stock",
-            Instant.now()
-        );
-        producerService.sendStockQuote(sampleEvent);
+        String symbol = "AAPL";
+        String exchange = "NASDAQ";
+        String tradeValue = "178.50";
+        String currency = "USD";
+        String description = "Apple Inc. Common Stock";
+        Instant tradeTime = Instant.now();
+
+        stockQuoteJsonProducer.sendStockQuote(new StockQuoteEventJson(
+                symbol,
+                exchange,
+                tradeValue,
+                currency,
+                description,
+                tradeTime
+        ));
+
+        stockQuoteAvroProducer.sendStockQuote(new StockQuoteEventAvro(
+                symbol,
+                exchange,
+                tradeValue,
+                currency,
+                description,
+                tradeTime));
+
         return ResponseEntity.ok("Sample stock quote event sent successfully");
     }
 }
