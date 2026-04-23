@@ -1,18 +1,19 @@
-# Spring Kafka 
-
-## Build and run the project
-
-```bash
-./mvnw clean install
-docker compose up -d
-./mvnw spring-boot:run -pl spring-kafka-consumer
-```
+# Multiple Spring Kafka consumer listeners in a single Spring Boot application  
 
 ## Context
 
+In our company we have multiple teams consuming from multiple Kafka topics in a single Spring Boot application.
+When consuming from multiple topics that require different configuration like:
+* different deserialization format
+* shared secrets for encryption
+
+we want to avoid the boilerplate code of creating a `ConsumerFactory` bean and `KafkaListenerContainerFactory` bean for each topic.
+
+This example project is input for [Spring Boot issue #50166](https://github.com/spring-projects/spring-boot/issues/50166)
+
 ## Requirements
 
-### Microservice vs Mini service vs Structured monolith 
+### Microservice vs Mini service vs Structured monolith
 
 * We see different teams with different deployment models
 * We don't necessary embrace the idea that a single (micro) service consumes a single topic
@@ -47,11 +48,12 @@ Cons:
 
 ### Option 2: Create `ConsumerFactory` bean and `KafkaListenerContainerFactory` Kafka topic to consume
 
-We don`t want to create a `ConsumerFactory` bean and `ConcurrentKafkaListenerContainerFactory` for every @KafkaListener annoted method we have.
+We don`t want to create a `ConsumerFactory` bean and `ConcurrentKafkaListenerContainerFactory` for every @KafkaListener annotated method we have.
 
 Cons:
 * Boilerplate code for every topic we want to consume from like: [KafkaConsumerConfiguration.java](spring-kafka-consumer/src/main/java/com/example/kafka4/spring/kafka/consumer/configuration/KafkaConsumerConfiguration.java)
 * Error-prone, easy to mistakes in the Java configuration (not using ContainerCustomizer) will lead to missing metrics and tracing
+* Lot of code for "just" configuration
 
 ```java
 @Configuration(proxyBeanMethods = false)
@@ -72,8 +74,6 @@ class KafkaAnnotationDrivenConfiguration {
 }    
 ```
 
-* Lot of code for "just" configuration 
-
 ## Our proposal: Dynamically create KafkaListenerContainerFactory beans 
 
 Dynamically create `KafkaListenerContainerFactory` beans for each consumer to be configured differently 
@@ -81,6 +81,8 @@ Dynamically create `KafkaListenerContainerFactory` beans for each consumer to be
 based on the configuration in `application.yml`. 
 
 Spring Kafka consumers is a map. Where each key will the name of the KafkaListenerContainerFactory bean. 
+
+[See: application-proposal.yaml](spring-kafka-consumer/src/main/resources/application-proposal.yaml)
 
 ```yml
 spring:
@@ -127,5 +129,13 @@ public class MultiKafkaListener {
 The developer doesn't need to create any `ConsumerFactory` bean or `KafkaListenerContainerFactory` bean for each consumer.
 So this boilerplate code is removed and the Java configuration.
 
+## Build and run the project
 
+This project doesn't contain a solution for our proposal, but it contains the boilerplate code required to 
+run the Spring Boot application with multiple Kafka consumers (Json and Avro serialization formats).
 
+```bash
+./mvnw clean install
+docker compose up -d
+./mvnw spring-boot:run -pl spring-kafka-consumer
+```
